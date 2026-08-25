@@ -1,0 +1,4 @@
+:root { --ink: #202622; --muted: #7a817a; --bg: #f3f4f0; --line: #e2e5df; --teal: #2b978a; --blue: #6285b7; --coral: #d87562; --yellow: #e0b84e; --sans: 'Trebuchet MS', 'Segoe UI', sans-serif; --heading: 'Georgia', serif; font: 16px/1.45 var(--sans); color: var(--ink); background: var(--bg); font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input { font: inherit; }
