@@ -95,6 +95,14 @@ npm run build    # production build → dist/
 npm run lint     # eslint
 ```
 
+### Using the app
+
+1. Drag the **question paper** into the left box and the **answer sheet** into the right (or click to browse).
+2. Press **Start extraction** — the banner tracks progress while the three passes run.
+3. Click any question in the sidebar: its handwritten lines are highlighted exactly on the sheet preview.
+4. Watch the metric cards for totals, per-question status (`answered` / `needs review` / `unanswered`), and the AI insight banner for overall feedback.
+5. **Export report** downloads the full structured assessment as `assessment-report.json`.
+
 ---
 
 ## How it works — the full pipeline
