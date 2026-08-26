@@ -18,7 +18,30 @@ main { width: 100%; max-width: 1600px; margin: auto; padding: 54px 28px 70px; }.
 .uploaded-preview img { display: block; width: 100%; height: auto; }
 .answer-box { position: absolute; border: 3px solid #e7ad38; background: rgba(255, 222, 132, .2); box-shadow: 0 0 0 1px rgba(255,255,255,.8); }
 .answer-box .highlight-tag { left: -3px; top: -25px; }
-.answer-line { position: absolute; border-radius: 2px; background: rgba(255, 211, 75, .38); box-shadow: 0 0 0 1px rgba(215, 157, 24, .5); pointer-events: none; }
+.answer-line { position: absolute; border-radius: 3px; pointer-events: none; animation: lineIn .28s ease both; }
+.answer-line::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, rgba(255, 206, 58, .55), rgba(255, 220, 100, .45)); box-shadow: inset 0 -1px 0 rgba(214, 152, 22, .45); mix-blend-mode: multiply; }
 .answer-line .highlight-tag { left: -3px; top: -22px; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+.primary-button, .secondary-button, .feedback-button, .filter, .question-item, .upload-box, .metric, .close-button, .icon-button { transition: background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.primary-button:hover:not(:disabled) { background: var(--teal); transform: translateY(-1px); box-shadow: 0 8px 18px rgba(43, 151, 138, .28); }
+.secondary-button:hover, .feedback-button:hover { border-color: var(--teal); color: var(--teal); }
+.metric:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(42, 48, 42, .07); }
+.metrics .metric { animation: rise .35s ease both; }
+.metrics .metric:nth-child(2) { animation-delay: .05s; }
+.metrics .metric:nth-child(3) { animation-delay: .1s; }
+.metrics .metric:nth-child(4) { animation-delay: .15s; }
+.review-layout { animation: rise .35s ease both; }
+.question-panel .question-list { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #d7dad2 transparent; }
+.question-list::-webkit-scrollbar { width: 7px; }
+.question-list::-webkit-scrollbar-thumb { background: #d7dad2; border-radius: 6px; }
+.question-item { animation: rise .3s ease both; }
+.status-dot { box-shadow: 0 0 0 3px rgba(43, 151, 138, .14); }
+.status-dot.review { box-shadow: 0 0 0 3px rgba(224, 184, 78, .16); }
+.status-dot.unanswered { box-shadow: 0 0 0 3px rgba(216, 117, 98, .15); }
+.highlight-tag { background: linear-gradient(135deg, #f9df94, #f2c95c); color: #7a5a10; box-shadow: 0 2px 5px rgba(42, 48, 42, .18); letter-spacing: .4px; }
+.upload-box.dragging { border-style: solid; border-color: var(--teal); background: #e9f7f4; transform: scale(1.015); box-shadow: 0 8px 20px rgba(43, 151, 138, .14); }
+.upload-box strong { max-width: 88%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+@keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@keyframes lineIn { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 800px) { .topbar { padding: 0 20px; }.breadcrumb { margin-left: 20px; }.breadcrumb span:first-child, .crumb-chevron { display: none; }main { padding: 35px 20px; }.workspace-heading { display: block; }.heading-actions { margin-top: 22px; }.metrics { grid-template-columns: repeat(2, 1fr); }.review-layout { grid-template-columns: 1fr; }.question-panel { border-right: 0; border-bottom: 1px solid var(--line); }.question-list { display: grid; grid-template-columns: 1fr 1fr; }.panel-note { display: none; }.paper-stage { padding: 20px 10px; }.answer-toolbar, .answer-footer { padding: 18px; }.upload-grid { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { h1 { font-size: 35px; }.top-actions { gap: 8px; }.metrics { gap: 8px; }.metric { padding: 0 12px; gap: 8px; min-height: 75px; }.metric-value { font-size: 21px; }.metric strong { font-size: 10px; }.heading-actions button { flex: 1; padding: 10px 8px; }.question-list { grid-template-columns: 1fr; }.paper-sheet { padding: 22px; }.answer-footer { display: block; }.feedback-button { margin-top: 12px; } }

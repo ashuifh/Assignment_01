@@ -1,7 +1,8 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 function UploadBox({ label, file, inputRef, onPick }) {
-  return <div className={`upload-box ${file ? 'has-file' : ''}`} onClick={() => inputRef.current?.click()} role="button" tabIndex="0" onKeyDown={(event) => event.key === 'Enter' && inputRef.current?.click()}>
+  const [dragging, setDragging] = useState(false)
+  return <div className={`upload-box ${file ? 'has-file' : ''} ${dragging ? 'dragging' : ''}`} onClick={() => inputRef.current?.click()} role="button" tabIndex="0" onKeyDown={(event) => event.key === 'Enter' && inputRef.current?.click()} onDragOver={(event) => { event.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); if (event.dataTransfer.files[0]) onPick(event.dataTransfer.files[0]) }}>
     <input ref={inputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => onPick(event.target.files[0])} />
     <div className="upload-icon">{file ? '✓' : '↑'}</div>
     <strong>{file ? file.name : label}</strong>
