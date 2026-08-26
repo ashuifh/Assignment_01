@@ -1,20 +1,34 @@
 import { useState } from 'react'
 import './App.css'
-import AnswerViewer from './components/AnswerViewer'
-import GradingSummary from './components/GradingSummary'
-import ProcessingStatus from './components/ProcessingStatus'
-import QuestionList from './components/QuestionList'
-import UploadSection from './components/UploadSection'
-import { useAssessment } from './hooks/useAssessment'
+// MVC: Controller orchestrates Views ↔ Services
+import { useAssessmentController } from './controllers/assessmentController'
+import AppShell from './views/layouts/AppShell'
+import AppRoutes from './routes'
+import ProcessingStatus from './views/components/ProcessingStatus'
 
 function App() {
   const [showUpload, setShowUpload] = useState(true)
-  const { files, addFile, questions, summary, unmatchedAnswers, activeQuestion, setActiveQuestion, processing, error, analyze, reset } = useAssessment()
-  const active = questions.find((question) => question.id === activeQuestion)
+  const [mobileTab, setMobileTab] = useState('questions')
+  const {
+    files,
+    addFile,
+    removeFile,
+    questions,
+    summary,
+    unmatchedAnswers,
+    activeQuestion,
+    setActiveQuestion,
+    processing,
+    processingStep,
+    error,
+    analyze,
+    reset,
+  } = useAssessmentController()
 
   const startNewAssessment = () => {
     reset()
     setShowUpload(true)
+    setMobileTab('questions')
   }
 
   const exportReport = () => {
@@ -24,6 +38,7 @@ function App() {
       answerSheet: files.answers?.name || null,
       summary,
       questions,
+      unmatchedAnswers,
     }
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -34,30 +49,34 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
-  return <div className="app-shell">
-    <header className="topbar">
-      <a className="brand" href="/" aria-label="VedaAI home"><span className="brand-mark">✦</span><span>veda<span>ai</span></span></a>
-      <div className="breadcrumb"><span>Workspace</span><span className="crumb-chevron">›</span><strong>Assessment review</strong></div>
-      <div className="top-actions"><button className="icon-button" aria-label="Help">?</button><div className="avatar">AK</div></div>
-    </header>
+  // Global status handles extraction (isUploadMode false) and any error (MVC View concern)
+  const showGlobalStatus = processing || !!error
 
-    <main>
-      <section className="workspace-heading">
-        <div><p className="eyebrow">AI ASSESSMENT REVIEW <span>•</span> LIVE EXTRACTION</p><h1>Paper review</h1><p className="subheading">Upload a question paper and answer sheet to map every response.</p></div>
-        <div className="heading-actions"><button className="secondary-button" onClick={startNewAssessment}><span>＋</span> New assessment</button><button className="primary-button" disabled={!questions.length} onClick={exportReport}>Export report <span>↗</span></button></div>
-      </section>
-
-      {showUpload && <UploadSection files={files} onPick={addFile} onAnalyze={async () => { if (await analyze()) setShowUpload(false) }} processing={processing} onClose={() => setShowUpload(false)} />}
-      <ProcessingStatus processing={processing} error={error} />
-      {questions.length > 0 && <>
-        <GradingSummary questions={questions} summary={summary} unmatchedCount={unmatchedAnswers.length} />
-        <section className="review-layout">
-          <QuestionList questions={questions} activeQuestion={activeQuestion} onSelect={setActiveQuestion} unmatchedCount={unmatchedAnswers.length} />
-          <AnswerViewer question={active} answerFile={files.answers} />
-        </section>
-      </>}
-      {!questions.length && !processing && !error && <div className="empty-state intro-state"><span className="upload-icon">↑</span><h2>Your extracted questions will appear here</h2><p>Choose both files above, then start extraction.</p></div>}
-    </main>
-  </div>
+  return (
+    <AppShell processing={processing}>
+      <AppRoutes
+        files={files}
+        questions={questions}
+        summary={summary}
+        unmatchedAnswers={unmatchedAnswers}
+        activeQuestion={activeQuestion}
+        setActiveQuestion={setActiveQuestion}
+        processing={processing}
+        processingStep={processingStep}
+        error={error}
+        showUpload={showUpload}
+        setShowUpload={setShowUpload}
+        mobileTab={mobileTab}
+        setMobileTab={setMobileTab}
+        onAnalyze={analyze}
+        onNewAssessment={startNewAssessment}
+        onExportReport={exportReport}
+        onPick={addFile}
+        onRemove={removeFile}
+      />
+      {showGlobalStatus && <ProcessingStatus processing={processing} processingStep={processingStep} error={error} />}
+    </AppShell>
+  )
 }
+
 export default App
