@@ -1,4 +1,41 @@
-:root { --ink: #202622; --muted: #7a817a; --bg: #f3f4f0; --line: #e2e5df; --teal: #2b978a; --blue: #6285b7; --coral: #d87562; --yellow: #e0b84e; --sans: 'Trebuchet MS', 'Segoe UI', sans-serif; --heading: 'Georgia', serif; font: 16px/1.45 var(--sans); color: var(--ink); background: var(--bg); font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink: #1d1d1b;
+  --muted: #8b8b85;
+  --faint: #b5b3ad;
+  --bg: #f3f2ef;
+  --panel: #ffffff;
+  --line: #e8e6e1;
+  --orange: #f1600d;
+  --orange-deep: #d9530a;
+  --orange-soft: #fde7d8;
+  --orange-faint: #fff3ea;
+  --green: #43a047;
+  --green-deep: #2e7d32;
+  --green-soft: rgba(67, 160, 71, .22);
+  --amber-deep: #b26a00;
+  --amber-soft: #fdf1dc;
+  --red-deep: #c94f38;
+  --red-soft: #fdeae5;
+  --radius: 16px;
+  --shadow-sm: 0 1px 2px rgba(28, 22, 14, .06);
+  --shadow-md: 0 12px 32px rgba(28, 22, 14, .09);
+  /* 4px spacing scale — Tailwind default is 0.25rem = 4px (16px base), mirror here */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+  --s10: 40px;
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
-button, input { font: inherit; }
+body { margin: 0; min-width: 320px; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }

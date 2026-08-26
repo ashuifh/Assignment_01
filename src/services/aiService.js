@@ -1,5 +1,7 @@
 const MODEL = 'google/gemini-2.5-flash'
-const API_URL = '/api/openrouter/chat/completions'
+// Served by the api/openrouter.js serverless function on Vercel, and by the Vite
+// dev-server proxy locally — the key never has to live in the client bundle.
+const API_URL = '/api/openrouter'
 
 function fileToDataUrl(file) {
   if (!file.type.startsWith('image/') || file.size < 2 * 1024 * 1024) return readFile(file)
@@ -69,13 +71,17 @@ function unionOfSegments(segments) {
 }
 
 async function requestOpenRouter(apiKey, content, maxTokens = 4096) {
+  const headers = { 'Content-Type': 'application/json' }
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`
   const response = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    headers,
     body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content }], response_format: { type: 'json_object' }, temperature: 0.1, max_tokens: maxTokens, provider: { sort: 'throughput' } }),
   })
   if (!response.ok) {
-    let message = `OpenRouter request failed (${response.status}). Check the API key and uploaded files.`
+    let message = response.status === 404
+      ? 'OpenRouter endpoint not found (404). If deployed, make sure the api/openrouter function exists and OPENROUTER_API_KEY is set in the hosting dashboard.'
+      : `OpenRouter request failed (${response.status}). Check the API key and uploaded files.`
     try {
       const errorPayload = await response.json()
       message = errorPayload.error?.message || message
@@ -90,10 +96,13 @@ async function requestOpenRouter(apiKey, content, maxTokens = 4096) {
   return parseJson(text)
 }
 
-export async function extractAssessment(questionPaper, answerSheet) {
+export async function extractAssessment(questionPaper, answerSheet, onStep) {
+  // Optional: only local development needs it (the Vite proxy forwards this header).
+  // On Vercel the serverless function injects OPENROUTER_API_KEY server-side instead.
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY
-  if (!apiKey) throw new Error('OpenRouter API key is missing. Add VITE_OPENROUTER_API_KEY to .env and restart Vite.')
+  const notify = (msg) => { try { onStep?.(msg) } catch { /* ignore */ } }
 
+  notify('Reading files…')
   const [paperDataUrl, answerDataUrl] = await Promise.all([fileToDataUrl(questionPaper), fileToDataUrl(answerSheet)])
   const prompt = `You are an assessment document extraction engine. Analyze the question paper and the student's answer sheet.
 Return ONLY valid JSON with this exact shape:
@@ -107,10 +116,12 @@ Rules: preserve printed order and numbering; make labelled parts like 11(a) sepa
   const filePart = (file, dataUrl) => file.type.startsWith('image/')
     ? { type: 'image_url', image_url: { url: dataUrl } }
     : { type: 'file', file: { filename: file.name, file_data: dataUrl } }
+  notify('Extracting questions & mapping answers…')
   const result = await requestOpenRouter(apiKey, [{ type: 'text', text: prompt }, filePart(questionPaper, paperDataUrl), filePart(answerSheet, answerDataUrl)])
   const questions = Array.isArray(result.questions) ? result.questions : []
   const answerImage = filePart(answerSheet, answerDataUrl)
-  const locatedQuestions = await Promise.all(questions.map(async (question) => {
+  if (questions.length) notify(`Locating ${questions.filter((q) => q.status !== 'unanswered' && q.answer).length} answer regions…`)
+  const locatedQuestions = await Promise.all(questions.map(async (question, idx) => {
     if (question.status === 'unanswered' || !question.answer) {
       const segments = sanitizeSegments(question.lines)
       return { ...question, lines: segments, box: unionOfSegments(segments) || normalizeRect(question.box) }
@@ -122,6 +133,7 @@ Transcribed answer to locate: ${question.answer}
 Return ONLY JSON: { "page": number|null, "lines": [{ "x": number, "y": number, "width": number, "height": number }] }
 Give one entry in "lines" per handwritten line of that answer, each strip tightly surrounding just its own line of text from first word to last word (normalized decimals 0..1 against the FULL answer-sheet image; x and y are the top-left corner; never use a 0-1000 scale). Include the student's own question-number label as a line only if it is handwritten next to this answer. Never include printed text, margins, ruled lines, other subparts, or neighboring answers. If the answer fills a paragraph, still return one strip per visual line of handwriting. If the supplied answer cannot be confidently located, return lines [].`
     try {
+      if (idx === Math.floor(questions.length / 2)) notify('Refining highlights…')
       const location = await requestOpenRouter(apiKey, [{ type: 'text', text: locationPrompt }, answerImage], 1024)
       const segments = sanitizeSegments(location.lines)
       const box = unionOfSegments(segments) || normalizeRect(location.box)
@@ -130,5 +142,6 @@ Give one entry in "lines" per handwritten line of that answer, each strip tightl
       return { ...question, lines: [], box: null, status: 'review' }
     }
   }))
+  notify('Finalizing…')
   return { ...result, questions: locatedQuestions }
 }
