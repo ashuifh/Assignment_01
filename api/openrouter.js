@@ -20,8 +20,11 @@ export default async function handler(req, res) {
       body: JSON.stringify(req.body ?? {}),
     })
     const payload = await upstream.text()
-    res.status(upstream.status).type('application/json').send(payload)
-  } catch {
-    res.status(502).json({ error: { message: 'Could not reach OpenRouter.' } })
+    res.status(upstream.status)
+    res.setHeader('Content-Type', 'application/json')
+    res.send(payload)
+  } catch (error) {
+    console.error('openrouter proxy error:', error)
+    res.status(502).json({ error: { message: `Could not reach OpenRouter: ${error?.message || error}` } })
   }
 }
